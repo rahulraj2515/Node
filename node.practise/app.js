@@ -3,7 +3,16 @@ const express = require('express');
 
 const app = express();
 
+const User = require('./models/user');
+
+const mongoose = require('mongoose');
+
 const bodyparser = require('body-parser');
+
+mongoose.connect('mongodb://localhost:27017/project1');
+mongoose.connection.on('connected',() => {
+    console.log("database is connected now");
+})
 
 app.use(bodyparser.json());
 
@@ -41,14 +50,36 @@ app.get ('/get-user/:id',(req,res) => {
 app.post('/add-user',(req,res) => {
 
     console.log(req.body);
-    if(req.body.name) {
-        users.unshift(req.body);
-        res.send({
-            status:200,
-            message: 'request added successfully',
-            users:users
+
+    const user = new User({
+        firstname : req.body.firstname,
+        lastname : req.body.lastname,
+        email : req.body.email
+    })
+
+    user.save().then(documents => {
+        if(documents) {
+            res.send({
+                status:200,
+                message:'data successfully created',
+                user:user
+            })
+        }
+    }).catch(err => {
+        res.status(500).json({
+            status:500,
+            message:'data not saved' + err
         })
-    }
+    })
+    
+    // if(req.body.name) {
+    //     users.unshift(req.body);
+    //     res.send({
+    //         status:200,
+    //         message: 'request added successfully',
+    //         users:users
+    //     })
+    // }
 })
 
 app.put ('/update/:id', (req,res) => {
